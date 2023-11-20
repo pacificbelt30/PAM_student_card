@@ -2,13 +2,17 @@
 import os
 import nfc
 import time
+import threading
 import binascii
 import hashlib
+import ctypes
 import logging
 from typing import TypeAlias, Union
 import csv
 
 PermitList: TypeAlias = tuple[tuple[bytes, str, str, bytes]]
+term_flag = False
+timer_flag = False
 
 def on_connect(tag):
     timeout = 0.1
@@ -32,6 +36,7 @@ def on_connect(tag):
     authenticate(idm, student_number)
 
 def authenticate(idm: bytes, student_number: str):
+    global timer_flag
     auth_flag = False
     permit_list = get_permit_list()
     if permit_list is None:
@@ -49,9 +54,11 @@ def authenticate(idm: bytes, student_number: str):
             break
     if auth_flag:
         print('Success Authentication')
+        timer_flag = True
         exit(0)
     else:
         print('Failed Authentication')
+        timer_flag = True
         exit(1)
 
 def get_permit_list(file: str = '/etc/security/permit_student_card.csv') -> Union[PermitList, None]:
@@ -76,8 +83,23 @@ def verify_student_number(student_number: str, reserved_stn: str) -> bool:
 def check_PAM_USER(reserved_pam_user: str) -> bool:
     return True if os.getenv('PAM_USER') == reserved_pam_user else False
 
+def timeout(sleep: int=5):
+    global term_flag
+    global timer_flag
+    count = 0
+    while not timer_flag and (count < sleep):
+        time.sleep(0.5)
+        count += 0.5
+    term_flag = True
+
+
 if __name__ == "__main__":
     # logging.basicConfig(level=logging.DEBUG)
+    print('PAM_student_number start...')
+    threading.Thread(target=timeout).start()
     clf = nfc.ContactlessFrontend("usb:054c:06c3")
-    tag = clf.connect(rdwr={'on-connect': on_connect})
+    tag = clf.connect(rdwr={'on-connect': on_connect}, terminate=lambda: term_flag)
+    if tag == None:
+        print('Failed Authentication')
+        exit(1)
 
