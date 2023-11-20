@@ -11,7 +11,7 @@ The following tools must be installed so that they can be called from root.
 
 ## Usage
 You must create a list of permissions.
-Create a file named `/etc/security/PAM_student_card.csv` and create a permission list in the following format `hash,student_number,user,salt``.
+Create a file named `/etc/security/PAM_student_card.csv` and create a permission list in the following format `hash,student_number,user,salt`.
 Salt and hash values can be created by running `get_salt_and_hash.py`.
 
 Here is an example of a permission list.
