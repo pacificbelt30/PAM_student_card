@@ -30,3 +30,8 @@ account   include   system-remote-login
 password  include   system-remote-login
 session   include   system-remote-login
 ```
+
+## Verification
+There are three values to be verified.
+We look at the card's idm (SHA256 with salt), StudentNumber, and PAM_USER, which is set as an environment variable when pam_exec.so is run.
+If all values in each line of `/etc/security/PAM_student_number.csv` all match, the verification is considered successful.
